@@ -15,6 +15,7 @@ namespace PDFEditorNS
         private PDFViewWPF _viewer;
         private Options _activeOption = Options.NONE;
         private AnnotationsContainer _userAnnots = new AnnotationsContainer();
+        private System.Windows.Point _lastDoubleClick;
         #endregion Global vars
 
         #region Constructors
@@ -27,7 +28,11 @@ namespace PDFEditorNS
 
             _viewer.MouseDown += Viewer_MouseDown;
             _viewer.MouseUp += Viewer_MouseUp;
+
+            _viewer.MouseDoubleClick += _viewer_MouseDoubleClick;
         }
+
+        
         #endregion Constructors
 
         #region Current Doc Dependecy Property Logic
@@ -65,6 +70,7 @@ namespace PDFEditorNS
                 PDFDoc docToLoad = new PDFDoc((string)e.NewValue);
                 viewer.SetDoc(docToLoad);
                 editor._userAnnots.userHighlights.Clear();
+                editor._userAnnots.HasUnsavedAnnotations = false;
 
                 string fileAnnots = "Annotations\\" + AnnotationsMannager.getFileName((string)e.NewValue) + ".xml";
                 if (File.Exists(fileAnnots))
@@ -94,8 +100,10 @@ namespace PDFEditorNS
             //Need to convert coordinates
             if (!fromViewer)
             {
-                _viewer.ConvScreenPtToPagePt(ref x1, ref y1, currentPage);
-                _viewer.ConvScreenPtToPagePt(ref x2, ref y2, currentPage);
+                //_viewer.ConvScreenPtToPagePt(ref x1, ref y1, currentPage);
+                //_viewer.ConvScreenPtToPagePt(ref x2, ref y2, currentPage);
+                AnnotationsMannager.ConvertScreenPositionsToPagePositions(_viewer, currentPage, ref x1,ref y1);
+                AnnotationsMannager.ConvertScreenPositionsToPagePositions(_viewer, currentPage, ref x2,ref y2);
             }
 
             // Option selected in the Toolbar
@@ -107,6 +115,7 @@ namespace PDFEditorNS
                     userHL.page = currentPage;
                     userHL.rectArea = new pdftron.PDF.Rect(x1, y1, x2, y2);
                     _userAnnots.userHighlights.Add(userHL);
+                    _userAnnots.HasUnsavedAnnotations = true;
                     setHighlight(userHL);
                     break;
                 case Options.COMMENT:
@@ -168,6 +177,11 @@ namespace PDFEditorNS
             yDown = e.GetPosition(_viewer).Y;
         }
 
+        private void _viewer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            this._lastDoubleClick = e.GetPosition(_viewer);
+        }
+
         #endregion MouseClicks
 
         #region ToolbarEvents
@@ -224,6 +238,29 @@ namespace PDFEditorNS
             return !regex.IsMatch(text);
         }
 
+        private void delBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var page = _viewer.GetDoc().GetPage(_viewer.GetCurrentPage());
+            if (page.GetNumAnnots() > 0)
+            {
+                Annot annot;
+                for (int i = 0; i < page.GetNumAnnots(); i++)
+                {
+                    annot = page.GetAnnot(i);
+                    var rect = annot.GetRect();
+                    double relX = _lastDoubleClick.X;
+                    double relY = _lastDoubleClick.Y;
+                    AnnotationsMannager.ConvertScreenPositionsToPagePositions(_viewer,page.GetIndex(), ref relX, ref relY);
+                    if (relX >= rect.x1 && relX <= rect.x2 && relY >= rect.y1 && relY <= rect.y2)
+                    {
+                        page.AnnotRemove(i);
+                        _viewer.Update();
+                        _userAnnots.RemoveAnnotation(rect);
+                    }
+                }
+            }
+        }
+
         private void tbCurrentPage_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_viewer != null && !String.IsNullOrEmpty(tbCurrentPage.Text))
@@ -239,6 +276,7 @@ namespace PDFEditorNS
                 e.Handled = true;
             }
         }
+
         #endregion ToolbarEvents
     }
 }

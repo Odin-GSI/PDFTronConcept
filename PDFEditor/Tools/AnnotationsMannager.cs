@@ -1,4 +1,5 @@
-﻿using System;
+﻿using pdftron.PDF;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,6 +41,11 @@ namespace PDFEditorNS
         {
             string[] filenamePathParts = filePath.Split('\\');
             return filenamePathParts[filenamePathParts.Count() - 1];
+        }
+
+        public static void ConvertScreenPositionsToPagePositions(PDFViewWPF viewer, int currentPageIndex, ref double x, ref double y)
+        {
+            viewer.ConvScreenPtToPagePt(ref x, ref y, currentPageIndex);
         }
     }
 }

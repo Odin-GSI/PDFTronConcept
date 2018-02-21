@@ -44,7 +44,8 @@
                     <Image Source=".\Imgs\Comment.png" ></Image>
                 </RadioButton.Content>
             </RadioButton>
-            <Button x:Name="saveBtn" Click="saveBtn_Click">Save</Button>
+            <Button x:Name="delBtn" Click="delBtn_Click" >Erase</Button>
+            <Button x:Name="saveBtn" Click="saveBtn_Click" >Save</Button>
         </ToolBar>
         <Border x:Name="PDFViewerBorder" Grid.Row="1"/>
     </Grid>
