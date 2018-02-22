@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using pdftron.PDF;
+using Microsoft.Win32;
 
 namespace PDFEditorNS
 {
@@ -203,6 +204,9 @@ namespace PDFEditorNS
         }
         private void saveBtn_Click(object sender, RoutedEventArgs e)
         {
+            SaveFileDialog saveDialog = new SaveFileDialog();
+            
+
             string outputFilePath = "Annotations\\" + AnnotationsMannager.getFileName(_viewer.GetDoc().GetFileName()) + ".xml";
             //string xml = AnnotationsMannager.Serialize((XMLHighlight)userAnnots[0]);
             string xml = AnnotationsMannager.Serialize(_userAnnots);

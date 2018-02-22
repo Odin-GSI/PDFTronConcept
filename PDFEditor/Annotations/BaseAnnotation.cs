@@ -10,5 +10,14 @@ namespace PDFEditorNS
     [DataContract]
     public class BaseAnnotation
     {
+        [DataMember]
+        private Guid _id;
+
+        public BaseAnnotation()
+        {
+            this._id = Guid.NewGuid();
+        }
+
+        public Guid ID { get { return _id; } }
     }
 }
