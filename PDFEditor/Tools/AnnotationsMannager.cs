@@ -31,7 +31,7 @@ namespace PDFEditorNS
                 byte[] data = System.Text.Encoding.UTF8.GetBytes(xml);
                 stream.Write(data, 0, data.Length);
                 stream.Position = 0;
-                DataContractSerializer deserializer = new DataContractSerializer(toType);
+                DataContractSerializer deserializer = new DataContractSerializer(toType, new List<Type> { typeof(XMLHighlight),typeof(StickyNote)});
                 return deserializer.ReadObject(stream);
             }
         }

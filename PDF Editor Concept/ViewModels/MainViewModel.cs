@@ -13,7 +13,7 @@ namespace PDF_Editor_Concept
     public class MainViewModel : INotifyPropertyChanged
     {
         string _current;
-
+        private bool _editorEnabled = true;
         public MainViewModel()
         {
             
@@ -26,6 +26,16 @@ namespace PDF_Editor_Concept
             {
                 _current = value;
                 RaisePropertyChanged("currentPDF");
+            }
+        }
+        
+        public bool EditorEnabled
+        {
+            get { return _editorEnabled; }
+            set
+            {
+                _editorEnabled = value;
+                RaisePropertyChanged("EditorEnabled");
             }
         }
 
@@ -54,11 +64,12 @@ namespace PDF_Editor_Concept
             fileDialog.CheckPathExists = true;
             fileDialog.Filter = "PDF (*.pdf)|*.pdf|All files (*.*)|*.*";
             fileDialog.DefaultExt = ".pdf";
-
+            //this.EditorEnabled = false;
             if (fileDialog.ShowDialog() == true)
             {
                 currentPDF = fileDialog.FileName;
             }
+            //this.EditorEnabled = true;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

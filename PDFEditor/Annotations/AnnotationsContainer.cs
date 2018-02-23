@@ -10,16 +10,16 @@ namespace PDFEditorNS
         private bool hasUnsavedAnnotations = false;
 
         [DataMember]
-        public List<XMLHighlight> userHighlights = new List<XMLHighlight>();
+        public List<BaseAnnotation> userAnnotations = new List<BaseAnnotation>();
 
         public bool HasUnsavedAnnotations { get => hasUnsavedAnnotations; set => hasUnsavedAnnotations = value; }
 
         public bool RemoveAnnotation(Rect rect)
         {
-            foreach(XMLHighlight hl in userHighlights)
-                if ((hl.rectArea.x1 == rect.x1) &&(hl.rectArea.y1 == rect.y1) &&(hl.rectArea.x2 == rect.x2) &&(hl.rectArea.y2== rect.y2))
+            foreach(BaseAnnotation b in userAnnotations)
+                if ((b.rectArea.x1 == rect.x1) &&(b.rectArea.y1 == rect.y1) &&(b.rectArea.x2 == rect.x2) &&(b.rectArea.y2== rect.y2))
                 {
-                    userHighlights.Remove(hl);
+                    userAnnotations.Remove(b);
                     HasUnsavedAnnotations = true;
                     return true;
                 }

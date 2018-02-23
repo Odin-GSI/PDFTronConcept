@@ -5,15 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pe="clr-namespace:PDFEditorNS;assembly=PDFEditor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="840" Width="525">
-    <Grid>
-        <Grid.RowDefinitions>
+        Title="MainWindow" Height="840" Width="525" Name="wMainWindow">
+    <DockPanel>
+        <!--<Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
+        </Grid.RowDefinitions>-->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" DockPanel.Dock="Top">
             <Button Command="{Binding OpenCommand}">Open</Button>
         </StackPanel>
-        <pe:PDFEditor x:Name="myEditor" Grid.Row="1" CurrentDoc="{Binding Path=currentPDF, Mode=TwoWay}" />
-    </Grid>
+        <pe:PDFEditor IsEnabled="{Binding Path=EditorEnabled, Mode=OneWay}" x:Name="myEditor" PopupsOwner="{x:Reference Name=wMainWindow}"  Grid.Row="1" CurrentDoc="{Binding Path=currentPDF, Mode=TwoWay}" />
+    </DockPanel>
 </Window>

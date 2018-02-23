@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PDFNet">
-      <HintPath>..\..\..\..\Projects\PDF Editor\DLLs\PDFNet.dll</HintPath>
+      <HintPath>..\DLLs\PDFNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -56,8 +56,16 @@
     <Compile Include="Annotations\AnnotationsContainer.cs" />
     <Compile Include="Annotations\BaseAnnotation.cs" />
     <Compile Include="Annotations\Highlight.cs" />
+    <Compile Include="Annotations\StickyNote.cs" />
+    <Compile Include="Controls\TextPopup.xaml.cs">
+      <DependentUpon>TextPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\AnnotationsMannager.cs" />
     <Compile Include="Tools\enums.cs" />
+    <Page Include="Controls\TextPopup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PDFEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -95,6 +103,19 @@
     <Resource Include="Imgs\Highlight.png" />
     <Resource Include="Imgs\Next.png" />
     <Resource Include="Imgs\Previous.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\save-as.png" />
+    <Resource Include="Imgs\save.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\load.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\delete-sign.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

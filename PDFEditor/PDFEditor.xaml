@@ -17,38 +17,58 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
+    <DockPanel Name="gContainer">
+        <!--<Grid.RowDefinitions>
             <RowDefinition Height="29"/>
             <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <ToolBar Grid.Row="0">
-            <Button Name="btPrevious" Click="btPrevious_Click" ToolTip="Previous page" Style="{StaticResource ActionButtonsStyle}">
-                <Button.Content>
-                    <Image Source=".\Imgs\Previous.png" ></Image>
-                </Button.Content>
-            </Button>
-            <TextBox Name="tbCurrentPage" PreviewTextInput="tbCurrentPage_PreviewTextInput" TextChanged="tbCurrentPage_TextChanged">0</TextBox>
-            <Button Name="btNext" Click="btNext_Click" ToolTip="Next page" Style="{StaticResource ActionButtonsStyle}">
-                <Button.Content>
-                    <Image Source=".\Imgs\Next.png" ></Image>
-                </Button.Content>
-            </Button>
-            <RadioButton x:Name="rbHighlight" ToolTip="Highlight" Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbHighlight_Checked" Unchecked="rbHighlight_Unchecked" >
-                <RadioButton.Content>
-                    <Image Source=".\Imgs\Highlight.png" ></Image>
-                </RadioButton.Content>
-            </RadioButton>
-            <RadioButton x:Name="rbNote" ToolTip="Comment"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbNote_Checked" Unchecked="rbNote_Unchecked"  >
-                <RadioButton.Content>
-                    <Image Source=".\Imgs\Comment.png" ></Image>
-                </RadioButton.Content>
-            </RadioButton>
-            <Button x:Name="delBtn" Click="delBtn_Click" >Erase</Button>
-            <Button x:Name="saveBtn" Click="saveBtn_Click" >Save</Button>
-        </ToolBar>
-        <Border x:Name="PDFViewerBorder" Grid.Row="1"/>
-    </Grid>
+        </Grid.RowDefinitions>-->
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar Height="29" >
+                <Button Name="btPrevious" Click="btPrevious_Click" ToolTip="Previous page" Style="{StaticResource ActionButtonsStyle}">
+                    <Button.Content>
+                        <Image Source=".\Imgs\Previous.png" ></Image>
+                    </Button.Content>
+                </Button>
+                <TextBox Name="tbCurrentPage" PreviewTextInput="tbCurrentPage_PreviewTextInput" TextChanged="tbCurrentPage_TextChanged">0</TextBox>
+                <Button Name="btNext" Click="btNext_Click" ToolTip="Next page" Style="{StaticResource ActionButtonsStyle}">
+                    <Button.Content>
+                        <Image Source=".\Imgs\Next.png" ></Image>
+                    </Button.Content>
+                </Button>
+                <RadioButton x:Name="rbHighlight" ToolTip="Highlight" Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbHighlight_Checked" Unchecked="rbHighlight_Unchecked" >
+                    <RadioButton.Content>
+                        <Image Source=".\Imgs\Highlight.png" ></Image>
+                    </RadioButton.Content>
+                </RadioButton>
+                <RadioButton x:Name="rbNote" ToolTip="Comment"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbNote_Checked" Unchecked="rbNote_Unchecked"  >
+                    <RadioButton.Content>
+                        <Image Source=".\Imgs\Comment.png" ></Image>
+                    </RadioButton.Content>
+                </RadioButton>
+                <Button x:Name="delBtn" Click="delBtn_Click" ToolTip="Delete annotation" >
+                    <Button.Content>
+                        <Image Source=".\Imgs\delete.png" />
+                    </Button.Content>
+                </Button>
+                <Button x:Name="loadBtn" Click="loadBtn_Click" ToolTip="Load annotations..." >
+                    <Button.Content>
+                        <Image Source=".\Imgs\load.png" />
+                    </Button.Content>
+                </Button>
+                <Button x:Name="saveBtn" Click="saveBtn_Click" ToolTip="Save">
+                    <Button.Content>
+                        <Image Source=".\Imgs\save.png" />
+                    </Button.Content>
+                </Button>
+                <Button x:Name="saveAsBtn" Click="saveAsBtn_Click" ToolTip="Save as..." >
+                    <Button.Content>
+                        <Image Source=".\Imgs\save-as.png" />
+                    </Button.Content>
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+        <Border x:Name="PDFViewerBorder" /><!--Grid.Row="1"-->
+    </DockPanel>
 </UserControl>
 
     
