@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace PDFEditorNS
 {
-    enum Options
+    enum AnnotationOptions
     {
         HIGHLIGHT,
         COMMENT,
+        MARKAREA,
         NONE
     }
 }

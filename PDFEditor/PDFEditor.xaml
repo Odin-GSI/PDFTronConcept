@@ -35,14 +35,19 @@
                         <Image Source=".\Imgs\Next.png" ></Image>
                     </Button.Content>
                 </Button>
-                <RadioButton x:Name="rbHighlight" ToolTip="Highlight" Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbHighlight_Checked" Unchecked="rbHighlight_Unchecked" >
+                <RadioButton x:Name="rbHighlight" ToolTip="Highlight" Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbHighlight_Checked" Unchecked="rbHighlight_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown" >
                     <RadioButton.Content>
                         <Image Source=".\Imgs\Highlight.png" ></Image>
                     </RadioButton.Content>
                 </RadioButton>
-                <RadioButton x:Name="rbNote" ToolTip="Comment"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbNote_Checked" Unchecked="rbNote_Unchecked"  >
+                <RadioButton x:Name="rbNote" ToolTip="Comment"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbNote_Checked" Unchecked="rbNote_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
                     <RadioButton.Content>
                         <Image Source=".\Imgs\Comment.png" ></Image>
+                    </RadioButton.Content>
+                </RadioButton>
+                <RadioButton x:Name="rbMarkArea" ToolTip="Mark Area"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbMarkArea_Checked" Unchecked="rbMarkArea_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
+                    <RadioButton.Content>
+                        <Image Source=".\Imgs\MarkArea.png" ></Image>
                     </RadioButton.Content>
                 </RadioButton>
                 <Button x:Name="delBtn" Click="delBtn_Click" ToolTip="Delete annotation" >

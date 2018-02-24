@@ -1,45 +1,93 @@
-﻿using pdftron.PDF;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using kahua.kdk.property;
+using kahua.kdk.collection;
+using kahua.kdk.resourcebuilder;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PDFEditorNS
 {
-    public class BaseAnnotation
+    //IBuild is Propertied requirement for handling property collection (RectArea)
+    public class BaseAnnotation : Propertied, IBuild
     {
-        private Rect _rect;
-
-        [DataMember]
-        private Guid _id;
-
-        public BaseAnnotation()
+        static class Names
         {
-            this._id = Guid.NewGuid();
+            public const string Id = "Id";
+            public const string RectArea = "RectArea";
+            public const string Page = "Page";
         }
 
-        public Guid ID { get { return _id; } }
-
-        [DataMember]
-        public Rect rectArea
+        #region Constructors
+        public BaseAnnotation(string name)
+            : base(name)
         {
-            get
-            {
-                return _rect;
-            }
-            set
-            {
-                //double x1 = Math.Min(value.x1, value.x2);
-                //double y1 = Math.Max(value.y1, value.y2);
-                //double x2 = Math.Max(value.x1,value.x2);
-                //double y2 = Math.Min(value.y1, value.y2);
+            Guid(System.Guid.NewGuid());
+        }
 
-                //_rect = new Rect(x1, y1, x2, y2);
+        public BaseAnnotation(PropertyCollection properties)
+            : base(properties)
+        {
 
-                _rect = value;
+        }
+        #endregion Constructors
+
+        #region RectArea
+        private AnnotationRectCollection _rectArea;
+
+        public BaseAnnotation RectArea(AnnotationRect map)
+        {
+            createRectArea();
+
+            _rectArea.Add(map);
+
+            return this;
+        }
+
+        // The Rect Collection should only contain one.
+        public AnnotationRect RectArea() { return _rectArea?.FirstOrDefault(); }
+
+        private void createRectArea()
+        {
+            if (_rectArea == null)
+            {
+                _rectArea = new AnnotationRectCollection(Properties.New(Names.RectArea));
             }
         }
+
+        public BaseAnnotation RemoveRectArea(AnnotationRect bindingSource)
+        {
+            _rectArea.Remove(bindingSource);
+            return this;
+        }
+
+        public IOrdered<AnnotationRect> RectAreas() { return _rectArea ?? OrderedHelper<AnnotationRect>.Empty; }
+        #endregion RectArea
+
+        #region Page
+        public int Page() { return Properties.Int(Names.Page); }
+        public BaseAnnotation Page(int page) { Properties.Int(Names.Page, page); return this; }
+        #endregion Page
+
+        #region Id
+        public Guid Id() { return Properties.Guid(Names.Id); }
+        private BaseAnnotation Guid(Guid id) { Properties.Guid(Names.Id, id); return this; }
+        #endregion Id
+
+        #region IBuild
+        protected override void onPropertiesSet()
+        {
+            base.onPropertiesSet();
+
+            var rect = Properties.Properties(Names.RectArea);
+            if (rect != null)
+            {
+                _rectArea = new AnnotationRectCollection(rect);
+            }
+        }
+
+        void IBuild.Prepare()
+        {
+            createRectArea();
+        }
+        #endregion IBuild
     }
 }

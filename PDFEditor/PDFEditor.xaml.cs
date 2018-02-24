@@ -18,16 +18,16 @@ namespace PDFEditorNS
 {
     public partial class PDFEditor : UserControl
     {
-        #region Global vars
+        #region Class vars
         private PDFViewWPF _viewer;
-        private Options _activeOption = Options.NONE;
-        private AnnotationsContainer _userAnnots = new AnnotationsContainer();
+        private AnnotationOptions _activeOption = AnnotationOptions.NONE;
+        private AnnotationsMannager _userAnnots = new AnnotationsMannager();
         private System.Windows.Point _lastDoubleClick;
         private string currentLoadedAnnotsFileName = Environment.CurrentDirectory + "\\annotations.xml";
         //private System.Windows.Controls.Primitives.Popup pp;
         private Window popupsOwner;
         //private bool dialogOpen;
-        #endregion Global vars
+        #endregion Class vars
 
         #region Constructors
         public PDFEditor()
@@ -79,25 +79,11 @@ namespace PDFEditorNS
                 var viewer = editor.Viewer;
                 viewer.SetPagePresentationMode(PDFViewWPF.PagePresentationMode.e_single_continuous);
                 viewer.SetPageViewMode(PDFViewWPF.PageViewMode.e_fit_width);
-                //viewer.Height = 750;
+
                 PDFDoc docToLoad = new PDFDoc((string)e.NewValue);
                 viewer.SetDoc(docToLoad);
-                editor._userAnnots.userAnnotations.Clear();
-                editor._userAnnots.HasUnsavedAnnotations = false;
+                editor._userAnnots.ClearAnnotations();
 
-                //string fileAnnots = "Annotations\\" + AnnotationsMannager.getFileName((string)e.NewValue) + ".xml";
-                //if (File.Exists(fileAnnots))
-                //{
-                //    // SWITCH for different Annotations
-                //    AnnotationsContainer annotsCont = (AnnotationsContainer)AnnotationsMannager.Deserialize(File.ReadAllText(fileAnnots), typeof(AnnotationsContainer));
-                //    foreach (XMLHighlight hl in annotsCont.userHighlights)
-                //    {
-                //        // Set the Highlights in the current Viewer
-                //        ((PDFEditor)source).setHighlight(hl);
-                //        // Save the Highlights in the current Container
-                //        editor._userAnnots.userHighlights.Add(hl);
-                //    }
-                //}
                 editor.tbCurrentPage.Text = "1";
             }
         }
@@ -113,8 +99,6 @@ namespace PDFEditorNS
             //Need to convert coordinates
             if (!fromViewer)
             {
-                //_viewer.ConvScreenPtToPagePt(ref x1, ref y1, currentPage);
-                //_viewer.ConvScreenPtToPagePt(ref x2, ref y2, currentPage);
                 AnnotationsMannager.ConvertScreenPositionsToPagePositions(_viewer, currentPage, ref x1,ref y1);
                 AnnotationsMannager.ConvertScreenPositionsToPagePositions(_viewer, currentPage, ref x2,ref y2);
             }
@@ -122,68 +106,183 @@ namespace PDFEditorNS
             // Option selected in the Toolbar
             switch (_activeOption)
             {
-                case Options.HIGHLIGHT:
-                    XMLHighlight userHL = new XMLHighlight();
-                    userHL.page = currentPage;
-                    userHL.rectArea = AnnotationsMannager.NormalizeRect( new pdftron.PDF.Rect(x1, y1, x2, y2));
-                    _userAnnots.userAnnotations.Add(userHL);
-                    _userAnnots.HasUnsavedAnnotations = true;
-                    setHighlight(userHL);
+                case AnnotationOptions.HIGHLIGHT:
+                    BaseAnnotation userHL = new XMLHighlight()
+                        .Page(currentPage)
+                        .RectArea(AnnotationsMannager.ConvertRect(new pdftron.PDF.Rect(x1, y1, x2, y2)));
+                    _userAnnots.AddAnnotation(userHL);
+                    setHighlight((XMLHighlight)userHL);
                     break;
-                case Options.COMMENT:
+                case AnnotationOptions.COMMENT:
                     var rect = new pdftron.PDF.Rect(x1, y1, x2, y2);
                     rect = AnnotationsMannager.NormalizeRect(rect);
                     pdftron.PDF.Annots.Text txt = pdftron.PDF.Annots.Text.Create(temp, rect, "");
-                    //pdftron.PDF.Annots.Popup pop = pdftron.PDF.Annots.Popup.Create(temp, new pdftron.PDF.Rect(x1, y1, x2, y2));
 
-                    StickyNote sn = new StickyNote();
-                    sn.page = currentPage;
-                    sn.rectArea = rect;
+                    StickyNote sn = (StickyNote)(new StickyNote()
+                        .Page(currentPage)
+                        .RectArea(AnnotationsMannager.ConvertRect(rect)));
 
                     TextPopup popup = new TextPopup();
                     popup.Text = txt.GetContents();
-                    popup.Closed += (object closedSender, EventArgs eClosed) => { txt.SetContents(popup.Text); _viewer.Update(); sn.comment = popup.Text; };
+                    popup.Closed += (object closedSender, EventArgs eClosed) => { txt.SetContents(popup.Text); _viewer.Update(); sn.Comment(popup.Text); };
 
                     popup.Owner = this.PopupsOwner;
                     popup.Show();
 
-                    //pop.SetParent(txt);
-                    //txt.SetPopup(pop);
                     txt.SetColor(new ColorPt(1, 0, 0));
                     txt.RefreshAppearance();
 
                     temp.GetPage(currentPage).AnnotPushBack(txt);
-                    //temp.GetPage(currentPage).AnnotPushBack(pop);
 
-                    _userAnnots.userAnnotations.Add(sn);
-                    _userAnnots.HasUnsavedAnnotations = true;
-
+                    _userAnnots.AddAnnotation(sn);
                     break;
-                case Options.NONE:
+                case AnnotationOptions.MARKAREA:
+                    BaseAnnotation userMA = new MarkArea()
+                        .Page(currentPage)
+                        .RectArea(AnnotationsMannager.ConvertRect(new pdftron.PDF.Rect(x1, y1, x2, y2)));
+                    _userAnnots.AddAnnotation(userMA);
+                    setMarkArea((MarkArea)userMA);
+                    break;
+                case AnnotationOptions.NONE:
                     break;
                 default:
                     break;
             }
-            //temp.Save("modified.pdf", SDFDoc.SaveOptions.e_linearized);
+            
             _viewer.SetCurrentPage(currentPage);
             _viewer.Update();
+        }
+        
+        private void setMarkArea(MarkArea ma)
+        {
+            PDFDoc temp = _viewer.GetDoc();
+            pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(ma.RectArea());
+            Ink ink = Ink.Create(temp.GetSDFDoc(), r);
+            pdftron.PDF.Point pt3 = new pdftron.PDF.Point();
+
+            #region Path Calculations
+            //Bottom Path
+            pt3.x = r.x1; pt3.y = r.y1;
+            ink.SetPoint(0, 0, pt3);
+            pt3.x = r.x1 + 10 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(0, 1, pt3);
+            pt3.x = r.x1 + 20 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
+            ink.SetPoint(0, 2, pt3);
+            pt3.x = r.x1 + 30 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(0, 3, pt3);
+            pt3.x = r.x1 + 40 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
+            ink.SetPoint(0, 4, pt3);
+            pt3.x = r.x1 + 50 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(0, 5, pt3);
+            pt3.x = r.x1 + 60 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
+            ink.SetPoint(0, 6, pt3);
+            pt3.x = r.x1 + 70 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(0, 7, pt3);
+            pt3.x = r.x1 + 80 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
+            ink.SetPoint(0, 8, pt3);
+            pt3.x = r.x1 + 90 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(0, 9, pt3);
+            pt3.x = r.x2; pt3.y = r.y1;
+            ink.SetPoint(0, 10, pt3);
+
+            //Top Path
+            pt3.x = r.x1; pt3.y = r.y2;
+            ink.SetPoint(1, 0, pt3);
+            pt3.x = r.x1 + 10 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(1, 1, pt3);
+            pt3.x = r.x1 + 20 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
+            ink.SetPoint(1, 2, pt3);
+            pt3.x = r.x1 + 30 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(1, 3, pt3);
+            pt3.x = r.x1 + 40 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
+            ink.SetPoint(1, 4, pt3);
+            pt3.x = r.x1 + 50 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(1, 5, pt3);
+            pt3.x = r.x1 + 60 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
+            ink.SetPoint(1, 6, pt3);
+            pt3.x = r.x1 + 70 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(1, 7, pt3);
+            pt3.x = r.x1 + 80 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
+            ink.SetPoint(1, 8, pt3);
+            pt3.x = r.x1 + 90 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            ink.SetPoint(1, 9, pt3);
+            pt3.x = r.x2; pt3.y = r.y2;
+            ink.SetPoint(1, 10, pt3);
+
+            //Left Path
+            pt3.x = r.x1; pt3.y = r.y1;
+            ink.SetPoint(2, 0, pt3);
+            pt3.y = r.y1 + 10 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(2, 1, pt3);
+            pt3.y = r.y1 + 20 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
+            ink.SetPoint(2, 2, pt3);
+            pt3.y = r.y1 + 30 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(2, 3, pt3);
+            pt3.y = r.y1 + 40 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
+            ink.SetPoint(2, 4, pt3);
+            pt3.y = r.y1 + 50 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(2, 5, pt3);
+            pt3.y = r.y1 + 60 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
+            ink.SetPoint(2, 6, pt3);
+            pt3.y = r.y1 + 70 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(2, 7, pt3);
+            pt3.y = r.y1 + 80 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
+            ink.SetPoint(2, 8, pt3);
+            pt3.y = r.y1 + 90 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(2, 9, pt3);
+            pt3.x = r.x1; pt3.y = r.y2;
+            ink.SetPoint(2, 10, pt3);
+
+            //Right Path
+            pt3.x = r.x2; pt3.y = r.y1;
+            ink.SetPoint(3, 0, pt3);
+            pt3.y = r.y1 + 10 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(3, 1, pt3);
+            pt3.y = r.y1 + 20 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
+            ink.SetPoint(3, 2, pt3);
+            pt3.y = r.y1 + 30 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(3, 3, pt3);
+            pt3.y = r.y1 + 40 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
+            ink.SetPoint(3, 4, pt3);
+            pt3.y = r.y1 + 50 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(3, 5, pt3);
+            pt3.y = r.y1 + 60 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
+            ink.SetPoint(3, 6, pt3);
+            pt3.y = r.y1 + 70 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(3, 7, pt3);
+            pt3.y = r.y1 + 80 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
+            ink.SetPoint(3, 8, pt3);
+            pt3.y = r.y1 + 90 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            ink.SetPoint(3, 9, pt3);
+            pt3.x = r.x2; pt3.y = r.y2;
+            ink.SetPoint(3, 10, pt3);
+            #endregion Path Calculations
+
+            ink.SetColor(new ColorPt(0, 0.7, 0.7), 3);
+            temp.GetPage(ma.Page()).AnnotPushBack(ink);
+            _viewer.Update(ink, ma.Page());
         }
 
         private void setHighlight(XMLHighlight xhl)
         {
             PDFDoc temp = _viewer.GetDoc();
-            pdftron.PDF.Annots.Highlight hl = pdftron.PDF.Annots.Highlight.Create(temp.GetSDFDoc(), new pdftron.PDF.Rect(xhl.rectArea.x1, xhl.rectArea.y1, xhl.rectArea.x2, xhl.rectArea.y2));
+            pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(xhl.RectArea());
+            Highlight hl = Highlight.Create(temp.GetSDFDoc(), r);
             //hl.SetQuadPoint(0, new QuadPoint(new pdftron.PDF.Point(xDown, yUp), new pdftron.PDF.Point(xUp, yUp), new pdftron.PDF.Point(xUp, yDown), new pdftron.PDF.Point(xDown, yDown)));
             hl.SetColor(new ColorPt(0.7, 1, 0.7, 1), 3);
-            temp.GetPage(xhl.page).AnnotPushBack(hl);
+            temp.GetPage(xhl.Page()).AnnotPushBack(hl);
+            _viewer.Update(hl,xhl.Page());
         }
 
         private void setStickyNote(StickyNote sn)
         {
             PDFDoc temp = _viewer.GetDoc();
-            pdftron.PDF.Annots.Text t = pdftron.PDF.Annots.Text.Create(temp.GetSDFDoc(), new pdftron.PDF.Rect(sn.rectArea.x1, sn.rectArea.y1, sn.rectArea.x2, sn.rectArea.y2));
-            t.SetContents(sn.comment);
-            temp.GetPage(sn.page).AnnotPushBack(t);
+            pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(sn.RectArea());
+            pdftron.PDF.Annots.Text t = pdftron.PDF.Annots.Text.Create(temp.GetSDFDoc(), r);
+            t.SetContents(sn.Comment());
+            t.SetColor(new ColorPt(1, 0, 0));
+            temp.GetPage(sn.Page()).AnnotPushBack(t);
+            _viewer.Update(t, sn.Page());
         }
 
         #endregion Annotations Handling
@@ -208,8 +307,8 @@ namespace PDFEditorNS
                 //Check for Annotation and Create it!
                 createAnnotation(xDown.Value, yDown.Value, xUp, yUp);
 
-            xDown = null;
-            yDown = null;
+                xDown = null;
+                yDown = null;
             }
         }
 
@@ -306,14 +405,14 @@ namespace PDFEditorNS
                                 break;
                             case Annot.Type.e_Text:
 
-                                var a = (StickyNote)_userAnnots.userAnnotations.FirstOrDefault(t => relX >= t.rectArea.x1 && relX <= t.rectArea.x2 && relY >= t.rectArea.y1 && relY <= t.rectArea.y2);
+                                var a = (StickyNote)_userAnnots.AnnotationCollection.FirstOrDefault(t => relX >= t.RectArea().X1() && relX <= t.RectArea().X2() && relY >= t.RectArea().Y1() && relY <= t.RectArea().Y2());
 
                                 if (a == null)
                                     return;
 
                                 TextPopup popup = new TextPopup();
                                 popup.Text = annot.GetContents();
-                                popup.Closed += (object closedSender, EventArgs eClosed) => { annot.SetContents(popup.Text); _viewer.Update(); a.comment = popup.Text; };
+                                popup.Closed += (object closedSender, EventArgs eClosed) => { annot.SetContents(popup.Text); _viewer.Update(); a.Comment(popup.Text); };
 
                                 popup.Owner = this.PopupsOwner;
                                 popup.Show();
@@ -335,28 +434,23 @@ namespace PDFEditorNS
         #region ToolbarEvents
         private void rbHighlight_Checked(object sender, RoutedEventArgs e)
         {
-            _activeOption = Options.HIGHLIGHT;
+            _activeOption = AnnotationOptions.HIGHLIGHT;
         }
         private void rbNote_Checked(object sender, RoutedEventArgs e)
         {
-            _activeOption = Options.COMMENT;
+            _activeOption = AnnotationOptions.COMMENT;
         }
         private void rbHighlight_Unchecked(object sender, RoutedEventArgs e)
         {
-            _activeOption = Options.NONE;
+            _activeOption = AnnotationOptions.NONE;
         }
         private void rbNote_Unchecked(object sender, RoutedEventArgs e)
         {
-            _activeOption = Options.NONE;
+            _activeOption = AnnotationOptions.NONE;
         }
         private void saveBtn_Click(object sender, RoutedEventArgs e)
         {
-            //SaveFileDialog saveDialog = new SaveFileDialog();
-            
-
-            //string outputFilePath = "Annotations\\" + AnnotationsMannager.getFileName(_viewer.GetDoc().GetFileName()) + ".xml";
-            //string xml = AnnotationsMannager.Serialize((XMLHighlight)userAnnots[0]);
-            string xml = AnnotationsMannager.Serialize(_userAnnots);
+            string xml = _userAnnots.GetAnnotationsXml();
 
             File.WriteAllText(currentLoadedAnnotsFileName, xml);
         }
@@ -416,11 +510,12 @@ namespace PDFEditorNS
         {
             SaveFileDialog saveDialog = new SaveFileDialog();
             saveDialog.CheckPathExists = true;
+            saveDialog.Filter = "XML (*.xml)|*.xml|All files (*.*)|*.*";
             saveDialog.DefaultExt = ".xml";
             
            if(saveDialog.ShowDialog() == true)
-            {                
-                string xml = AnnotationsMannager.Serialize(_userAnnots);
+            {
+                string xml = _userAnnots.GetAnnotationsXml();
                 File.WriteAllText(saveDialog.FileName, xml);
                 currentLoadedAnnotsFileName = saveDialog.FileName;
             }
@@ -434,37 +529,35 @@ namespace PDFEditorNS
             if (File.Exists(currentLoadedAnnotsFileName))
             {
                 // SWITCH for different Annotations
-                AnnotationsContainer annotsCont = (AnnotationsContainer)AnnotationsMannager.Deserialize(File.ReadAllText(currentLoadedAnnotsFileName), typeof(AnnotationsContainer));
-                foreach (BaseAnnotation a in annotsCont.userAnnotations)
+                _userAnnots.LoadAnnotationsFromXml(File.ReadAllText(currentLoadedAnnotsFileName));
+
+                foreach (BaseAnnotation a in _userAnnots.AnnotationCollection)
                 {
-                    // Aqui hay que hacer un Factory
+                    // Aqui hay que hacer un Factory ??
                     if (a is XMLHighlight)
                         this.setHighlight((XMLHighlight)a);
 
                     if (a is StickyNote)
                         this.setStickyNote((StickyNote)a);
 
-                    // Save the Annotation in the current Container
-                    this._userAnnots.userAnnotations.Add(a);
+                    if (a is MarkArea)
+                        this.setMarkArea((MarkArea)a);
                 }
-                _viewer.Update();
             }
         }
 
         private void setLoadedAnnotsFile()
         {
-            
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.CheckFileExists = true;
             fileDialog.CheckPathExists = true;
             
             fileDialog.Filter = "XML (*.xml)|*.xml|All files (*.*)|*.*";
             fileDialog.DefaultExt = ".xml";
-            //dialogOpen = true;
+            
             if (fileDialog.ShowDialog() == true)
             {
-                this._userAnnots.userAnnotations.Clear();
-                this._userAnnots.HasUnsavedAnnotations = false;
+                this._userAnnots.ClearAnnotations();
 
                 for (int i = 1; i <= _viewer.GetDoc().GetPageCount(); i++)
                     for (int j = 0; j < _viewer.GetDoc().GetPage(i).GetNumAnnots(); j++)
@@ -472,7 +565,27 @@ namespace PDFEditorNS
 
                 currentLoadedAnnotsFileName = fileDialog.FileName;
             }
-            //dialogOpen = false;
+        }
+
+        // Unselect Action
+        private void radioButton_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (((RadioButton)sender).IsChecked.GetValueOrDefault())
+            {
+                ((RadioButton)sender).IsChecked = false;
+                e.Handled = true;
+                _activeOption = AnnotationOptions.NONE;
+            }
+        }
+
+        private void rbMarkArea_Checked(object sender, RoutedEventArgs e)
+        {
+            _activeOption = AnnotationOptions.MARKAREA;
+        }
+
+        private void rbMarkArea_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _activeOption = AnnotationOptions.NONE;
         }
 
         private void tbCurrentPage_TextChanged(object sender, TextChangedEventArgs e)

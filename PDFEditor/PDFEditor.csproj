@@ -33,6 +33,9 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="kahua.kdk.dotnet">
+      <HintPath>..\DLLs\kahua.kdk.dotnet.dll</HintPath>
+    </Reference>
     <Reference Include="PDFNet">
       <HintPath>..\DLLs\PDFNet.dll</HintPath>
     </Reference>
@@ -53,9 +56,12 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Annotations\AnnotationRect.cs" />
+    <Compile Include="Annotations\AnnotationRectCollection.cs" />
     <Compile Include="Annotations\AnnotationsContainer.cs" />
     <Compile Include="Annotations\BaseAnnotation.cs" />
     <Compile Include="Annotations\Highlight.cs" />
+    <Compile Include="Annotations\MarkArea.cs" />
     <Compile Include="Annotations\StickyNote.cs" />
     <Compile Include="Controls\TextPopup.xaml.cs">
       <DependentUpon>TextPopup.xaml</DependentUpon>
@@ -116,6 +122,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Imgs\delete-sign.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\MarkArea.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
