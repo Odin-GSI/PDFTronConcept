@@ -124,20 +124,21 @@ namespace PDFEditorNS
             {
                 case Options.HIGHLIGHT:
                     XMLHighlight userHL = new XMLHighlight();
-                    //userHL.color = new double[] { 0.7, 1, 0.7, 1,3};
                     userHL.page = currentPage;
-                    userHL.rectArea = new pdftron.PDF.Rect(x1, y1, x2, y2);
+                    userHL.rectArea = AnnotationsMannager.NormalizeRect( new pdftron.PDF.Rect(x1, y1, x2, y2));
                     _userAnnots.userAnnotations.Add(userHL);
                     _userAnnots.HasUnsavedAnnotations = true;
                     setHighlight(userHL);
                     break;
                 case Options.COMMENT:
-                    pdftron.PDF.Annots.Text txt = pdftron.PDF.Annots.Text.Create(temp, new pdftron.PDF.Rect(x1, y1, x2, y2), "");
+                    var rect = new pdftron.PDF.Rect(x1, y1, x2, y2);
+                    rect = AnnotationsMannager.NormalizeRect(rect);
+                    pdftron.PDF.Annots.Text txt = pdftron.PDF.Annots.Text.Create(temp, rect, "");
                     //pdftron.PDF.Annots.Popup pop = pdftron.PDF.Annots.Popup.Create(temp, new pdftron.PDF.Rect(x1, y1, x2, y2));
 
                     StickyNote sn = new StickyNote();
                     sn.page = currentPage;
-                    sn.rectArea = new pdftron.PDF.Rect(x1, y1, x2, y2);
+                    sn.rectArea = rect;
 
                     TextPopup popup = new TextPopup();
                     popup.Text = txt.GetContents();

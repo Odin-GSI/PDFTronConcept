@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace PDFEditorNS
 {
     public class AnnotationsMannager
@@ -46,6 +47,16 @@ namespace PDFEditorNS
         public static void ConvertScreenPositionsToPagePositions(PDFViewWPF viewer, int currentPageIndex, ref double x, ref double y)
         {
             viewer.ConvScreenPtToPagePt(ref x, ref y, currentPageIndex);
+        }
+
+        public static Rect NormalizeRect(Rect rect)
+        {
+            double x1 = Math.Min(rect.x1, rect.x2);
+            double y1 = Math.Min(rect.y1, rect.y2);
+            double x2 = Math.Max(rect.x1, rect.x2);
+            double y2 = Math.Max(rect.y1, rect.y2);
+
+            return new Rect(x1, y1, x2, y2);
         }
     }
 }
