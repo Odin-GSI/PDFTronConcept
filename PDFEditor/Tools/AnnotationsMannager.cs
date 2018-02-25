@@ -27,10 +27,10 @@ namespace PDFEditorNS
             HasUnsavedAnnotations = true;
         }
 
-        public bool RemoveAnnotation(Rect rect)
+        public bool RemoveAnnotation(Rect rect, int pageIndex)
         {
             foreach (BaseAnnotation b in _annotations)
-                if ((b.RectArea().X1() == rect.x1) && (b.RectArea().Y1() == rect.y1) && (b.RectArea().X2() == rect.x2) && (b.RectArea().Y2() == rect.y2))
+                if ((b.Page()==pageIndex) &&(b.RectArea().X1() == rect.x1) && (b.RectArea().Y1() == rect.y1) && (b.RectArea().X2() == rect.x2) && (b.RectArea().Y2() == rect.y2))
                 {
                     _annotations.Remove(b);
                     HasUnsavedAnnotations = true;

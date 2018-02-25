@@ -23,10 +23,9 @@ namespace PDFEditorNS
         private AnnotationOptions _activeOption = AnnotationOptions.NONE;
         private AnnotationsMannager _userAnnots = new AnnotationsMannager();
         private System.Windows.Point _lastDoubleClick;
-        private string currentLoadedAnnotsFileName = Environment.CurrentDirectory + "\\annotations.xml";
-        //private System.Windows.Controls.Primitives.Popup pp;
+        //private string currentLoadedAnnotsFileName = Environment.CurrentDirectory + "\\annotations.xml";
         private Window popupsOwner;
-        //private bool dialogOpen;
+        public Window PopupsOwner { get => popupsOwner; set => popupsOwner = value; }
         #endregion Class vars
 
         #region Constructors
@@ -41,16 +40,20 @@ namespace PDFEditorNS
             _viewer.MouseUp += Viewer_MouseUp;
 
             _viewer.MouseDoubleClick += _viewer_MouseDoubleClick;
+            _viewer.MouseMove += _viewer_MouseMove;
+
+            CurrentSaveFile = "Save to " + Environment.CurrentDirectory + "\\annotations.xml";
         }
 
         
         #endregion Constructors
 
-        #region Current Doc Dependecy Property Logic
+        #region Dependecy Properties
 
         // We need this to be called from the OnCurrentDocPropertyChanged static method
         public PDFViewWPF Viewer { get => _viewer; }
 
+        #region CurrentDoc
         public static readonly DependencyProperty currentDocProperty = DependencyProperty.Register("CurrentDoc", typeof(string), typeof(PDFEditor), new PropertyMetadata(OnCurrentDocPropertyChanged));
 
         // Dependency Property for the PDF document
@@ -66,8 +69,6 @@ namespace PDFEditorNS
                 // More logic in OnCurrentDocPropertyChanged
             }
         }
-        
-        public Window PopupsOwner { get => popupsOwner; set => popupsOwner = value; }
 
         // This code is necessary for in the CurrentDoc property Setter, SetValue() is called directly - any extra code won't be executed when called by Binding
         private static void OnCurrentDocPropertyChanged(DependencyObject source, DependencyPropertyChangedEventArgs e)
@@ -87,8 +88,27 @@ namespace PDFEditorNS
                 editor.tbCurrentPage.Text = "1";
             }
         }
+        #endregion CurrentDoc
 
-        #endregion Current Doc Dependecy Property Logic
+        #region CurrentSaveFile
+        public static readonly DependencyProperty currentSaveFileProperty = DependencyProperty.Register("CurrentSaveFile", typeof(string), typeof(PDFEditor));
+
+        public string CurrentSaveFile
+        {
+            get
+            {
+                return (string)GetValue(currentSaveFileProperty);
+            }
+            set
+            {
+                SetValue(currentSaveFileProperty, value);
+                // More logic in OnCurrentSaveFilePropertyChanged
+            }
+        }
+
+        #endregion CurrentSaveFile
+
+        #endregion Dependecy Properties
 
         #region Annotations Handling
         private void createAnnotation(double x1,double y1,double x2,double y2, bool fromViewer = false)
@@ -164,23 +184,23 @@ namespace PDFEditorNS
             //Bottom Path
             pt3.x = r.x1; pt3.y = r.y1;
             ink.SetPoint(0, 0, pt3);
-            pt3.x = r.x1 + 10 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 10 * (r.x2 - r.x1) / 100; pt3.y = r.y1 + 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(0, 1, pt3);
             pt3.x = r.x1 + 20 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
             ink.SetPoint(0, 2, pt3);
-            pt3.x = r.x1 + 30 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 30 * (r.x2 - r.x1) / 100; pt3.y = r.y1 + 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(0, 3, pt3);
             pt3.x = r.x1 + 40 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
             ink.SetPoint(0, 4, pt3);
-            pt3.x = r.x1 + 50 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 50 * (r.x2 - r.x1) / 100; pt3.y = r.y1 + 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(0, 5, pt3);
             pt3.x = r.x1 + 60 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
             ink.SetPoint(0, 6, pt3);
-            pt3.x = r.x1 + 70 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 70 * (r.x2 - r.x1) / 100; pt3.y = r.y1 + 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(0, 7, pt3);
             pt3.x = r.x1 + 80 * (r.x2 - r.x1) / 100; pt3.y = r.y1;
             ink.SetPoint(0, 8, pt3);
-            pt3.x = r.x1 + 90 * (r.x2 - r.x1) / 100; pt3.y = r.y1 - 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 90 * (r.x2 - r.x1) / 100; pt3.y = r.y1 + 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(0, 9, pt3);
             pt3.x = r.x2; pt3.y = r.y1;
             ink.SetPoint(0, 10, pt3);
@@ -188,23 +208,23 @@ namespace PDFEditorNS
             //Top Path
             pt3.x = r.x1; pt3.y = r.y2;
             ink.SetPoint(1, 0, pt3);
-            pt3.x = r.x1 + 10 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 10 * (r.x2 - r.x1) / 100; pt3.y = r.y2 - 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(1, 1, pt3);
             pt3.x = r.x1 + 20 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
             ink.SetPoint(1, 2, pt3);
-            pt3.x = r.x1 + 30 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 30 * (r.x2 - r.x1) / 100; pt3.y = r.y2 - 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(1, 3, pt3);
             pt3.x = r.x1 + 40 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
             ink.SetPoint(1, 4, pt3);
-            pt3.x = r.x1 + 50 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 50 * (r.x2 - r.x1) / 100; pt3.y = r.y2 - 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(1, 5, pt3);
             pt3.x = r.x1 + 60 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
             ink.SetPoint(1, 6, pt3);
-            pt3.x = r.x1 + 70 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 70 * (r.x2 - r.x1) / 100; pt3.y = r.y2 - 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(1, 7, pt3);
             pt3.x = r.x1 + 80 * (r.x2 - r.x1) / 100; pt3.y = r.y2;
             ink.SetPoint(1, 8, pt3);
-            pt3.x = r.x1 + 90 * (r.x2 - r.x1) / 100; pt3.y = r.y2 + 7 * (r.y2 - r.y1) / 100;
+            pt3.x = r.x1 + 90 * (r.x2 - r.x1) / 100; pt3.y = r.y2 - 7 * (r.y2 - r.y1) / 100;
             ink.SetPoint(1, 9, pt3);
             pt3.x = r.x2; pt3.y = r.y2;
             ink.SetPoint(1, 10, pt3);
@@ -212,23 +232,23 @@ namespace PDFEditorNS
             //Left Path
             pt3.x = r.x1; pt3.y = r.y1;
             ink.SetPoint(2, 0, pt3);
-            pt3.y = r.y1 + 10 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 10 * (r.y2 - r.y1) / 100; pt3.x = r.x1 + 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(2, 1, pt3);
             pt3.y = r.y1 + 20 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
             ink.SetPoint(2, 2, pt3);
-            pt3.y = r.y1 + 30 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 30 * (r.y2 - r.y1) / 100; pt3.x = r.x1 + 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(2, 3, pt3);
             pt3.y = r.y1 + 40 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
             ink.SetPoint(2, 4, pt3);
-            pt3.y = r.y1 + 50 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 50 * (r.y2 - r.y1) / 100; pt3.x = r.x1 + 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(2, 5, pt3);
             pt3.y = r.y1 + 60 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
             ink.SetPoint(2, 6, pt3);
-            pt3.y = r.y1 + 70 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 70 * (r.y2 - r.y1) / 100; pt3.x = r.x1 + 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(2, 7, pt3);
             pt3.y = r.y1 + 80 * (r.y2 - r.y1) / 100; pt3.x = r.x1;
             ink.SetPoint(2, 8, pt3);
-            pt3.y = r.y1 + 90 * (r.y2 - r.y1) / 100; pt3.x = r.x1 - 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 90 * (r.y2 - r.y1) / 100; pt3.x = r.x1 + 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(2, 9, pt3);
             pt3.x = r.x1; pt3.y = r.y2;
             ink.SetPoint(2, 10, pt3);
@@ -236,23 +256,23 @@ namespace PDFEditorNS
             //Right Path
             pt3.x = r.x2; pt3.y = r.y1;
             ink.SetPoint(3, 0, pt3);
-            pt3.y = r.y1 + 10 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 10 * (r.y2 - r.y1) / 100; pt3.x = r.x2 - 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(3, 1, pt3);
             pt3.y = r.y1 + 20 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
             ink.SetPoint(3, 2, pt3);
-            pt3.y = r.y1 + 30 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 30 * (r.y2 - r.y1) / 100; pt3.x = r.x2 - 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(3, 3, pt3);
             pt3.y = r.y1 + 40 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
             ink.SetPoint(3, 4, pt3);
-            pt3.y = r.y1 + 50 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 50 * (r.y2 - r.y1) / 100; pt3.x = r.x2 - 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(3, 5, pt3);
             pt3.y = r.y1 + 60 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
             ink.SetPoint(3, 6, pt3);
-            pt3.y = r.y1 + 70 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 70 * (r.y2 - r.y1) / 100; pt3.x = r.x2 - 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(3, 7, pt3);
             pt3.y = r.y1 + 80 * (r.y2 - r.y1) / 100; pt3.x = r.x2;
             ink.SetPoint(3, 8, pt3);
-            pt3.y = r.y1 + 90 * (r.y2 - r.y1) / 100; pt3.x = r.x2 + 7 * (r.x2 - r.x1) / 100;
+            pt3.y = r.y1 + 90 * (r.y2 - r.y1) / 100; pt3.x = r.x2 - 7 * (r.x2 - r.x1) / 100;
             ink.SetPoint(3, 9, pt3);
             pt3.x = r.x2; pt3.y = r.y2;
             ink.SetPoint(3, 10, pt3);
@@ -287,10 +307,45 @@ namespace PDFEditorNS
 
         #endregion Annotations Handling
 
-        #region MouseClicks
+        #region MouseEvents
+
+        double? xSelecting, ySelecting;
+        private void _viewer_MouseMove(object sender, MouseEventArgs e)
+        {
+            //For Selecting
+            if (_activeOption != AnnotationOptions.NONE && xSelecting.HasValue && ySelecting.HasValue)
+            {
+                var pos = e.GetPosition(this.gContainer);
+                //The addition at the end of each value is needed for recapturing mouseup event out the rectangle
+                //because rectangle is not located in the same brach of the visual tree.
+                previewRect.Margin = new Thickness(
+                    Math.Min(xSelecting.Value, pos.X) + 1,
+                    Math.Min(pos.Y, ySelecting.Value) + 1,
+                    gContainer.ActualWidth - Math.Max(xSelecting.Value, pos.X) + 1,
+                    gContainer.ActualHeight - Math.Max(ySelecting.Value, pos.Y) + 1);
+
+                previewRect.Width = Math.Abs(gContainer.ActualWidth - (previewRect.Margin.Left + previewRect.Margin.Right));
+                previewRect.Height = Math.Abs(gContainer.ActualHeight - (previewRect.Margin.Bottom + previewRect.Margin.Top));
+            }
+        }
+
+        private void HidePreviewRect()
+        {
+            previewRect.Width = 0;
+            previewRect.Height = 0;
+            previewRect.Margin = new Thickness(gContainer.ActualWidth / 2, gContainer.ActualHeight / 2, gContainer.ActualWidth / 2, gContainer.ActualHeight / 2);
+        }
 
         private void Viewer_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            //For Selecting
+            if (_activeOption != AnnotationOptions.NONE)
+            {
+                HidePreviewRect();
+                xSelecting = null;
+                ySelecting = null;
+            }
+
             if (xDown.HasValue && yDown.HasValue)
             {
                 // No invalid MouseClick
@@ -318,6 +373,14 @@ namespace PDFEditorNS
         {
             xDown = e.GetPosition(_viewer).X;
             yDown = e.GetPosition(_viewer).Y;
+
+            //For Selecting
+            if (_activeOption != AnnotationOptions.NONE)
+            {
+                xSelecting = e.GetPosition(this.gContainer).X;
+                ySelecting = e.GetPosition(this.gContainer).Y;
+                previewRect.Margin = new Thickness(xSelecting.Value + 1, ySelecting.Value + 1, gContainer.ActualWidth - xSelecting.Value + 1, gContainer.ActualHeight - yDown.Value + 1);
+            }
         }
 
         private void _viewer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -325,6 +388,8 @@ namespace PDFEditorNS
             xDown = null;
             yDown = null;
             this._lastDoubleClick = e.GetPosition(_viewer);
+
+            //Need to PopUp?
             var page = _viewer.GetDoc().GetPage(_viewer.GetCurrentPage());
             if (page.GetNumAnnots() > 0)
             {
@@ -382,12 +447,12 @@ namespace PDFEditorNS
                                 break;
                             case Annot.Type.e_Highlight:
                                 
-                                var border = new BorderStyle(BorderStyle.Style.e_solid, 3);  
+                                //var border = new BorderStyle(BorderStyle.Style.e_solid, 3);  
                                 
-                                annot.SetBorderStyle(border);
-                                page.AnnotRemove(i);
-                                page.AnnotPushFront(annot);
-                                _viewer.Update();
+                                //annot.SetBorderStyle(border);
+                                //page.AnnotRemove(i);
+                                //page.AnnotPushFront(annot);
+                                //_viewer.Update();
                                 break;
                             case Annot.Type.e_Polyline:
                                 break;
@@ -405,7 +470,12 @@ namespace PDFEditorNS
                                 break;
                             case Annot.Type.e_Text:
 
-                                var a = (StickyNote)_userAnnots.AnnotationCollection.FirstOrDefault(t => relX >= t.RectArea().X1() && relX <= t.RectArea().X2() && relY >= t.RectArea().Y1() && relY <= t.RectArea().Y2());
+                                var a = (StickyNote)_userAnnots.AnnotationCollection.FirstOrDefault(t =>
+                                                                                        (t.Page() ==page.GetIndex()) 
+                                                                                        && (relX >= t.RectArea().X1() 
+                                                                                        && relX <= t.RectArea().X2() 
+                                                                                        && relY >= t.RectArea().Y1() 
+                                                                                        && relY <= t.RectArea().Y2()));
 
                                 if (a == null)
                                     return;
@@ -427,9 +497,8 @@ namespace PDFEditorNS
                 }
             }
         }
-        
 
-        #endregion MouseClicks
+        #endregion MouseEvents
 
         #region ToolbarEvents
         private void rbHighlight_Checked(object sender, RoutedEventArgs e)
@@ -452,7 +521,7 @@ namespace PDFEditorNS
         {
             string xml = _userAnnots.GetAnnotationsXml();
 
-            File.WriteAllText(currentLoadedAnnotsFileName, xml);
+            File.WriteAllText(CurrentSaveFile, xml);
         }
         private void btPrevious_Click(object sender, RoutedEventArgs e)
         {
@@ -499,8 +568,8 @@ namespace PDFEditorNS
                     if (relX >= rect.x1 && relX <= rect.x2 && relY >= rect.y1 && relY <= rect.y2)
                     {
                         page.AnnotRemove(i);
-                        _viewer.Update();
-                        _userAnnots.RemoveAnnotation(rect);
+                        _viewer.Update(annot, page.GetIndex());
+                        _userAnnots.RemoveAnnotation(rect, page.GetIndex());
                     }
                 }
             }
@@ -517,7 +586,7 @@ namespace PDFEditorNS
             {
                 string xml = _userAnnots.GetAnnotationsXml();
                 File.WriteAllText(saveDialog.FileName, xml);
-                currentLoadedAnnotsFileName = saveDialog.FileName;
+                CurrentSaveFile = saveDialog.FileName;
             }
         }
 
@@ -525,11 +594,10 @@ namespace PDFEditorNS
         {
             setLoadedAnnotsFile();
 
-            //string fileAnnots = "Annotations\\" + AnnotationsMannager.getFileName((string)e.NewValue) + ".xml";
-            if (File.Exists(currentLoadedAnnotsFileName))
+            if (File.Exists(CurrentSaveFile))
             {
                 // SWITCH for different Annotations
-                _userAnnots.LoadAnnotationsFromXml(File.ReadAllText(currentLoadedAnnotsFileName));
+                _userAnnots.LoadAnnotationsFromXml(File.ReadAllText(CurrentSaveFile));
 
                 foreach (BaseAnnotation a in _userAnnots.AnnotationCollection)
                 {
@@ -557,13 +625,9 @@ namespace PDFEditorNS
             
             if (fileDialog.ShowDialog() == true)
             {
-                this._userAnnots.ClearAnnotations();
+                deleteAllAnnotations();
 
-                for (int i = 1; i <= _viewer.GetDoc().GetPageCount(); i++)
-                    for (int j = 0; j < _viewer.GetDoc().GetPage(i).GetNumAnnots(); j++)
-                        _viewer.GetDoc().GetPage(i).AnnotRemove(j);
-
-                currentLoadedAnnotsFileName = fileDialog.FileName;
+                CurrentSaveFile = fileDialog.FileName;
             }
         }
 
@@ -602,6 +666,19 @@ namespace PDFEditorNS
                     MessageBox.Show("Page number out of range");
                 e.Handled = true;
             }
+        }
+
+        private void deleteAllAnnotations()
+        {
+            this._userAnnots.ClearAnnotations();
+
+            for (int i = 1; i <= _viewer.GetDoc().GetPageCount(); i++)
+                for (int j = 0; j < _viewer.GetDoc().GetPage(i).GetNumAnnots(); j++)
+                {
+                    pdftron.PDF.Annot a = _viewer.GetDoc().GetPage(i).GetAnnot(j);
+                    _viewer.GetDoc().GetPage(i).AnnotRemove(j);
+                    _viewer.Update(a, i);
+                }
         }
 
         #endregion ToolbarEvents

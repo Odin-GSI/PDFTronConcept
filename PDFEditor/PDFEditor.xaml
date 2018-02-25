@@ -1,4 +1,5 @@
 ﻿<UserControl x:Class="PDFEditorNS.PDFEditor"
+             x:Name="PDFTronViewer"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -17,12 +18,9 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <DockPanel Name="gContainer">
-        <!--<Grid.RowDefinitions>
-            <RowDefinition Height="29"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>-->
-        <ToolBarTray DockPanel.Dock="Top">
+    <Grid Name="gContainer">
+        <DockPanel Name="dpContainer">
+            <ToolBarTray DockPanel.Dock="Top">
             <ToolBar Height="29" >
                 <Button Name="btPrevious" Click="btPrevious_Click" ToolTip="Previous page" Style="{StaticResource ActionButtonsStyle}">
                     <Button.Content>
@@ -60,7 +58,7 @@
                         <Image Source=".\Imgs\load.png" />
                     </Button.Content>
                 </Button>
-                <Button x:Name="saveBtn" Click="saveBtn_Click" ToolTip="Save">
+                    <Button x:Name="saveBtn" Click="saveBtn_Click" ToolTip="{Binding ElementName=PDFTronViewer,Path=CurrentSaveFile}">
                     <Button.Content>
                         <Image Source=".\Imgs\save.png" />
                     </Button.Content>
@@ -74,6 +72,8 @@
         </ToolBarTray>
         <Border x:Name="PDFViewerBorder" /><!--Grid.Row="1"-->
     </DockPanel>
+        <Rectangle Name="previewRect" Stroke="Black" Fill="Blue" Width="0" Height="0" Opacity=".4"/>
+    </Grid>
 </UserControl>
 
     
