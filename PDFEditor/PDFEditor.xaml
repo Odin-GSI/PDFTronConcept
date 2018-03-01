@@ -68,7 +68,12 @@
                         <Image Source=".\Imgs\save-as.png" />
                     </Button.Content>
                 </Button>
-            </ToolBar>
+                <Button x:Name="fromWebApi" Click="fromWebApi_Click" ToolTip="from Web Api" >
+                    <Button.Content>
+                        <Image Source=".\Imgs\MarkArea.png" />
+                    </Button.Content>
+                </Button>
+                </ToolBar>
         </ToolBarTray>
         <Border x:Name="PDFViewerBorder" /><!--Grid.Row="1"-->
     </DockPanel>

@@ -13,6 +13,7 @@ using pdftron.PDF.Annots;
 using static pdftron.PDF.Annot;
 using PDFEditor.Controls;
 using System.Linq;
+using System.Net.Http;
 
 namespace PDFEditorNS
 {
@@ -650,6 +651,36 @@ namespace PDFEditorNS
         private void rbMarkArea_Unchecked(object sender, RoutedEventArgs e)
         {
             _activeOption = AnnotationOptions.NONE;
+        }
+
+        private async void fromWebApi_Click(object sender, RoutedEventArgs e)
+        {
+            string uri = "";
+            //uri = @"http://localhost:8627/api/PDF/Sample";
+            //uri = @"http://localhost:8627/api/PDF/RangePDF";
+            //uri = @"http://localhost/PDFWebApi/api/PDF/Sample";
+            //uri = @"http://Odin-Quad/PDFWebApi/fileSample";
+            //uri = @"http://Odin-Quad/PDFWebApi/Home/ActionPDF/big.pdf";
+            //uri = @"http://Odin-Quad/PDFWebApi/api/PDF/RangePDF";
+            //uri = @"http://localhost.fiddle:8627/api/PDF/RangePDF";
+
+            uri = @"http://Odin-Quad/PDFWebApi/somefile";
+            //uri = @"http://localhost:8627/somefile";
+
+            //uri = @"http://Odin-Quad/DocsServing/sample.pdf";
+            //uri = @"http://Odin-Quad/DocsServing/sample";
+
+            //uri = @"http://Odin-Quad/PDFWebApi/byRangeFile";
+            //uri = @"http://localhost:8627/byRangeFile";
+
+            _viewer.OpenURLAsync(uri);
+
+            //using (var client = new HttpClient())
+            //{
+            //    var response = await client.GetStreamAsync(uri);
+            //    PDFDoc d = new PDFDoc(response);
+            //    _viewer.SetDoc(d);
+            //}
         }
 
         private void tbCurrentPage_TextChanged(object sender, TextChangedEventArgs e)
