@@ -16,7 +16,8 @@ namespace PDF_Service.Controllers
             return View();
         }
 
-        //TEST ACTION
+        // Serving a file through MVC Controller....
+        /*
         [HttpGet]
         [ActionName("big.pdf")]
         public ActionResult ActionPDF()
@@ -24,5 +25,6 @@ namespace PDF_Service.Controllers
             Stream stream = new System.IO.FileStream(@"C:\GSI\BIG2.pdf", System.IO.FileMode.Open);
             return new FileStreamResult(stream, "application/pdf");
         }
+        */
     }
 }

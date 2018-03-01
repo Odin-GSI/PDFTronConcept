@@ -15,6 +15,8 @@ namespace PDF_Service.Controllers
 {
     public class PDFController : ApiController
     {
+        #region Oldtests
+        /*
         //TEST CDN
         public Task<HttpResponseMessage> GetPDFCDN()
         {
@@ -128,8 +130,10 @@ namespace PDF_Service.Controllers
             }
             return result;
         }
+        */
+        #endregion Oldtests
 
-        //TEST RANGE ---------------------THIS IS IT!!!!!
+        //Successful one
         private static readonly MediaTypeHeaderValue _mediaType = MediaTypeHeaderValue.Parse("application/pdf");
         [HttpGet]
         [HttpHead]
@@ -144,27 +148,32 @@ namespace PDF_Service.Controllers
             {
                 HttpResponseMessage headresponse = new HttpResponseMessage(HttpStatusCode.OK);
                 headresponse.Headers.Add("Accept-Ranges", "bytes");
-                headresponse.Content = new StringContent("BIG3.pdf");
+                headresponse.Content = new StringContent("File.pdf");
                 headresponse.Content.Headers.Add("Content-Length", ""+fi.Length);
 
                 return headresponse;
             }
 
-            var content = File.ReadAllBytes(file);
+            //I no longer need this. Odin 1/3
+            //var content = File.ReadAllBytes(file);
 
+            // No, this loads the whole pdf. Odin 1/3
             // A MemoryStream is seekable allowing us to do ranges over it. Same goes for FileStream.
-            MemoryStream memStream = new MemoryStream(content);
-  
-             // Check to see if this is a range request (i.e. contains a Range header field)
-             // Range requests can also be made conditional using the If-Range header field. This can be 
-             // used to generate a request which says: send me the range if the content hasn't changed; 
-             // otherwise send me the whole thing.
-             if (Request.Headers.Range != null)
+            //MemoryStream memStream = new MemoryStream(content);
+
+            // We will use this instead, to read from file as needed. Odin 1/3
+            FileStream sourceStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            // Check to see if this is a range request (i.e. contains a Range header field)
+            // Range requests can also be made conditional using the If-Range header field. This can be 
+            // used to generate a request which says: send me the range if the content hasn't changed; 
+            // otherwise send me the whole thing.
+            if (Request.Headers.Range != null)
              {
                 try
                  {
                      HttpResponseMessage partialResponse = Request.CreateResponse(HttpStatusCode.PartialContent);
-                     partialResponse.Content = new ByteRangeStreamContent(memStream, Request.Headers.Range, _mediaType);
+                     partialResponse.Content = new ByteRangeStreamContent(sourceStream, Request.Headers.Range, _mediaType);
                      return partialResponse;
                  }
                  catch (InvalidByteRangeException invalidByteRangeException)
@@ -176,12 +185,15 @@ namespace PDF_Service.Controllers
              {
                  // If it is not a range request we just send the whole thing as normal
                  HttpResponseMessage fullResponse = Request.CreateResponse(HttpStatusCode.OK);
-                 fullResponse.Content = new StreamContent(memStream);
+                 fullResponse.Content = new StreamContent(sourceStream);
                  fullResponse.Content.Headers.ContentType = _mediaType;
                  return fullResponse;
              }
         }
 
+        #region Possible variant
+        //This one might work but needs work in the byte buffer
+        /*
         // TEST RANGE 2
         private const string MimeType = "application/pdf";
         private const string path = @"C:\GSI\";
@@ -191,17 +203,26 @@ namespace PDF_Service.Controllers
         [Route("byRangeFile")]
         public HttpResponseMessage DownloadFile()
         {
-            if (Request.Method.Method == "HEAD")
-                return new HttpResponseMessage(HttpStatusCode.OK);
+            string fileName = "BIG3.pdf";
+            var fullFilePath = Path.Combine(path, fileName);
+            FileInfo fi = new FileInfo(fullFilePath);
 
-            string fileName = "BIG2.pdf";
+            if (Request.Method.Method == "HEAD")
+            {
+                HttpResponseMessage headresponse = new HttpResponseMessage(HttpStatusCode.OK);
+                headresponse.Headers.Add("Accept-Ranges", "bytes");
+                headresponse.Content = new StringContent(fileName);
+                headresponse.Content.Headers.Add("Content-Length", "" + fi.Length);
+
+                return headresponse;
+            }
+            
             this.LogRequestHttpHeaders(logFile, Request);
 
             HttpResponseMessage result = null;
-            var fullFilePath = Path.Combine(path, fileName);
 
-            if (Request.Headers.Range == null || Request.Headers.Range.Ranges.Count == 0 ||
-                Request.Headers.Range.Ranges.FirstOrDefault().From.Value == 0)
+            if (Request.Headers.Range == null || Request.Headers.Range.Ranges.Count == 0 )
+                //|| Request.Headers.Range.Ranges.FirstOrDefault().From.Value == 0)
             {
                 // Get the complete file
                 FileStream sourceStream = File.Open(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -222,7 +243,7 @@ namespace PDF_Service.Controllers
                 var item = Request.Headers.Range.Ranges.FirstOrDefault();
                 if (item != null && item.From.HasValue)
                 {
-                    result = this.GetPartialContent(fileName, item.From.Value);
+                    result = this.GetPartialContent(fileName, item.From.Value, item.To.Value);
                 }
             }
 
@@ -231,17 +252,18 @@ namespace PDF_Service.Controllers
             return result;
         }
 
-        private HttpResponseMessage GetPartialContent(string fileName, long partial)
+        private HttpResponseMessage GetPartialContent(string fileName, long from, long to)
         {
             var fullFilePath = Path.Combine(path, fileName);
             FileInfo fileInfo = new FileInfo(fullFilePath);
-            long startByte = partial;
+            long startByte = from;
 
             Action<Stream, HttpContent, TransportContext> pushContentAction = (outputStream, content, context) =>
             {
                 try
                 {
-                    var buffer = new byte[65536];
+                    //var buffer = new byte[65536];
+                    var buffer = new byte[to-from];
                     using (var file = File.Open(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         var bytesRead = 1;
@@ -258,7 +280,6 @@ namespace PDF_Service.Controllers
                 }
                 catch (HttpException ex)
                 {
-
                     this.LogException(ex);
                 }
                 finally
@@ -318,5 +339,7 @@ namespace PDF_Service.Controllers
             string output = string.Format("=======> Error while processing previous request. {0}{1}", Environment.NewLine, exception.ToString());
             File.AppendAllText(logFile, output);
         }
+        */
+        #endregion Possible variant
     }
 }
