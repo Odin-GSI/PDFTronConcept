@@ -114,7 +114,7 @@ namespace PDFEditorNS
         #region Annotations Handling
         private void createAnnotation(double x1,double y1,double x2,double y2, bool fromViewer = false)
         {
-            PDFDoc temp = _viewer.GetDoc();
+            PDFDoc currentDoc = _viewer.GetDoc();
             int currentPage = _viewer.CurrentPageNumber;
 
             //Need to convert coordinates
@@ -124,63 +124,104 @@ namespace PDFEditorNS
                 AnnotationsMannager.ConvertScreenPositionsToPagePositions(_viewer, currentPage, ref x2,ref y2);
             }
 
+            var rect = new pdftron.PDF.Rect(x1, y1, x2, y2);
+            TextPopup popup;
+
             // Option selected in the Toolbar
             switch (_activeOption)
             {
                 case AnnotationOptions.HIGHLIGHT:
                     BaseAnnotation userHL = new XMLHighlight()
                         .Page(currentPage)
-                        .RectArea(AnnotationsMannager.ConvertRect(new pdftron.PDF.Rect(x1, y1, x2, y2)));
+                        .RectArea(AnnotationsMannager.ConvertRect(rect));
                     _userAnnots.AddAnnotation(userHL);
                     setHighlight((XMLHighlight)userHL);
                     break;
                 case AnnotationOptions.COMMENT:
-                    var rect = new pdftron.PDF.Rect(x1, y1, x2, y2);
-                    rect = AnnotationsMannager.NormalizeRect(rect);
-                    pdftron.PDF.Annots.Text txt = pdftron.PDF.Annots.Text.Create(temp, rect, "");
-
-                    StickyNote sn = (StickyNote)(new StickyNote()
+                    StickyNote userSN = (StickyNote)(new StickyNote()
                         .Page(currentPage)
                         .RectArea(AnnotationsMannager.ConvertRect(rect)));
 
-                    TextPopup popup = new TextPopup();
-                    popup.Text = txt.GetContents();
-                    popup.Closed += (object closedSender, EventArgs eClosed) => { txt.SetContents(popup.Text); _viewer.Update(); sn.Comment(popup.Text); };
-
+                    pdftron.PDF.Annots.Text txt = pdftron.PDF.Annots.Text.Create(currentDoc, rect, "");
+                    popup = new TextPopup();
+                    popup.Closed += (object closedSender, EventArgs eClosed) => { userSN.Comment(popup.Text); };
                     popup.Owner = this.PopupsOwner;
                     popup.Show();
 
                     txt.SetColor(new ColorPt(1, 0, 0));
                     txt.RefreshAppearance();
 
-                    temp.GetPage(currentPage).AnnotPushBack(txt);
+                    currentDoc.GetPage(currentPage).AnnotPushBack(txt);
 
-                    _userAnnots.AddAnnotation(sn);
+                    _userAnnots.AddAnnotation(userSN);
                     break;
                 case AnnotationOptions.MARKAREA:
                     BaseAnnotation userMA = new MarkArea()
                         .Page(currentPage)
-                        .RectArea(AnnotationsMannager.ConvertRect(new pdftron.PDF.Rect(x1, y1, x2, y2)));
+                        .RectArea(AnnotationsMannager.ConvertRect(rect));
                     _userAnnots.AddAnnotation(userMA);
                     setMarkArea((MarkArea)userMA);
+                    break;
+                case AnnotationOptions.CIRCLE:
+                    BaseAnnotation userCircle = new Circle()
+                        .Page(currentPage)
+                        .RectArea(AnnotationsMannager.ConvertRect(new pdftron.PDF.Rect(x1, y1, x2, y2)));
+                    _userAnnots.AddAnnotation(userCircle);
+                    setCircle((Circle)userCircle);
+                    break;
+                case AnnotationOptions.SQUARE:
+                    BaseAnnotation userSquare = new Square()
+                        .Page(currentPage)
+                        .RectArea(AnnotationsMannager.ConvertRect(new pdftron.PDF.Rect(x1, y1, x2, y2)));
+                    _userAnnots.AddAnnotation(userSquare);
+                    setSquare((Square)userSquare);
+                    break;
+                case AnnotationOptions.LINE:
+                    BaseAnnotation userLine = new Line()
+                        .Page(currentPage)
+                        .RectArea(AnnotationsMannager.ConvertRect(new pdftron.PDF.Rect(x1, y1, x2, y2)));
+                    ((Line)userLine).XStart(x1);
+                    ((Line)userLine).YStart(y1);
+                    ((Line)userLine).XEnd(x2);
+                    ((Line)userLine).YEnd(y2);
+                    _userAnnots.AddAnnotation(userLine);
+                    setLine((Line)userLine);
+                    break;
+                case AnnotationOptions.FREETEXT:
+                    FreeText userFT = (FreeText)(new FreeText()
+                        .Page(currentPage)
+                        .RectArea(AnnotationsMannager.ConvertRect(rect)));
+
+                    pdftron.PDF.Annots.FreeText freetext = pdftron.PDF.Annots.FreeText.Create(currentDoc, rect);
+                    freetext.SetTextColor(new ColorPt(0.7, 0, 0.7), 3);
+                    freetext.SetFontSize(20);
+
+                    popup = new TextPopup();
+                    popup.Closed += (object closedSender, EventArgs eClosed) => { userFT.Text(popup.Text); freetext.SetContents(popup.Text); _viewer.Update(freetext, currentPage); };
+                    popup.Owner = this.PopupsOwner;
+                    popup.Show();
+
+                    currentDoc.GetPage(currentPage).AnnotPushBack(freetext);
+                    _viewer.Update(freetext, currentPage);
+                    _userAnnots.AddAnnotation(userFT);
                     break;
                 case AnnotationOptions.NONE:
                     break;
                 default:
                     break;
             }
-            
+
             _viewer.SetCurrentPage(currentPage);
             _viewer.Update();
         }
         
         private void setMarkArea(MarkArea ma)
         {
-            PDFDoc temp = _viewer.GetDoc();
+            PDFDoc currentDoc = _viewer.GetDoc();
             pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(ma.RectArea());
-            Ink ink = Ink.Create(temp.GetSDFDoc(), r);
-            pdftron.PDF.Point pt3 = new pdftron.PDF.Point();
+            Ink ink = Ink.Create(currentDoc.GetSDFDoc(), r);
 
+            pdftron.PDF.Point pt3 = new pdftron.PDF.Point();
             #region Path Calculations
             //Bottom Path
             pt3.x = r.x1; pt3.y = r.y1;
@@ -280,30 +321,71 @@ namespace PDFEditorNS
             #endregion Path Calculations
 
             ink.SetColor(new ColorPt(0, 0.7, 0.7), 3);
-            temp.GetPage(ma.Page()).AnnotPushBack(ink);
+            currentDoc.GetPage(ma.Page()).AnnotPushBack(ink);
             _viewer.Update(ink, ma.Page());
         }
 
         private void setHighlight(XMLHighlight xhl)
         {
-            PDFDoc temp = _viewer.GetDoc();
+            PDFDoc currentDoc = _viewer.GetDoc();
             pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(xhl.RectArea());
-            Highlight hl = Highlight.Create(temp.GetSDFDoc(), r);
+            Highlight hl = Highlight.Create(currentDoc.GetSDFDoc(), r);
             //hl.SetQuadPoint(0, new QuadPoint(new pdftron.PDF.Point(xDown, yUp), new pdftron.PDF.Point(xUp, yUp), new pdftron.PDF.Point(xUp, yDown), new pdftron.PDF.Point(xDown, yDown)));
             hl.SetColor(new ColorPt(0.7, 1, 0.7, 1), 3);
-            temp.GetPage(xhl.Page()).AnnotPushBack(hl);
+            currentDoc.GetPage(xhl.Page()).AnnotPushBack(hl);
             _viewer.Update(hl,xhl.Page());
         }
 
         private void setStickyNote(StickyNote sn)
         {
-            PDFDoc temp = _viewer.GetDoc();
+            PDFDoc currentDoc = _viewer.GetDoc();
             pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(sn.RectArea());
-            pdftron.PDF.Annots.Text t = pdftron.PDF.Annots.Text.Create(temp.GetSDFDoc(), r);
+            pdftron.PDF.Annots.Text t = pdftron.PDF.Annots.Text.Create(currentDoc.GetSDFDoc(), r);
             t.SetContents(sn.Comment());
             t.SetColor(new ColorPt(1, 0, 0));
-            temp.GetPage(sn.Page()).AnnotPushBack(t);
+            currentDoc.GetPage(sn.Page()).AnnotPushBack(t);
             _viewer.Update(t, sn.Page());
+        }
+
+        private void setFreeText(FreeText ft)
+        {
+            PDFDoc currentDoc = _viewer.GetDoc();
+            pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(ft.RectArea());
+            pdftron.PDF.Annots.FreeText freetext = pdftron.PDF.Annots.FreeText.Create(currentDoc, r);
+            freetext.SetTextColor(new ColorPt(0.7, 0, 0.7), 3);
+            freetext.SetFontSize(20);
+            freetext.SetContents(ft.Text());
+            currentDoc.GetPage(ft.Page()).AnnotPushBack(freetext);
+            _viewer.Update(freetext, ft.Page());
+        }
+
+        private void setCircle(Circle c)
+        {
+            PDFDoc temp = _viewer.GetDoc();
+            pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(c.RectArea());
+            pdftron.PDF.Annots.Circle hl = pdftron.PDF.Annots.Circle.Create(temp.GetSDFDoc(), r);
+            hl.SetColor(new ColorPt(0.7, 0, 0.7, 0), 3);
+            temp.GetPage(c.Page()).AnnotPushBack(hl);
+            _viewer.Update(hl, c.Page());
+        }
+        private void setSquare(Square sq)
+        {
+            PDFDoc temp = _viewer.GetDoc();
+            pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(sq.RectArea());
+            pdftron.PDF.Annots.Square hl = pdftron.PDF.Annots.Square.Create(temp.GetSDFDoc(), r);
+            hl.SetColor(new ColorPt(0.7, .8, 0, 0), 3);
+            temp.GetPage(sq.Page()).AnnotPushBack(hl);
+            _viewer.Update(hl, sq.Page());
+        }
+        private void setLine(Line xl)
+        {
+            PDFDoc temp = _viewer.GetDoc();
+            pdftron.PDF.Rect r = AnnotationsMannager.ConvertRect(xl.RectArea());
+            pdftron.PDF.Annots.Line hl = pdftron.PDF.Annots.Line.Create(temp.GetSDFDoc(), r); hl.SetStartPoint(new pdftron.PDF.Point(xl.XStart(), xl.YStart()));
+            hl.SetEndPoint(new pdftron.PDF.Point(xl.XEnd(), xl.YEnd()));
+            hl.SetColor(new ColorPt(0, 0, .7, .8), 3);
+            temp.GetPage(xl.Page()).AnnotPushBack(hl);
+            _viewer.Update(hl, xl.Page());
         }
 
         #endregion Annotations Handling
@@ -482,8 +564,8 @@ namespace PDFEditorNS
                                     return;
 
                                 TextPopup popup = new TextPopup();
-                                popup.Text = annot.GetContents();
-                                popup.Closed += (object closedSender, EventArgs eClosed) => { annot.SetContents(popup.Text); _viewer.Update(); a.Comment(popup.Text); };
+                                popup.Text = a.Comment();
+                                popup.Closed += (object closedSender, EventArgs eClosed) => { a.Comment(popup.Text); };
 
                                 popup.Owner = this.PopupsOwner;
                                 popup.Show();
@@ -510,11 +592,7 @@ namespace PDFEditorNS
         {
             _activeOption = AnnotationOptions.COMMENT;
         }
-        private void rbHighlight_Unchecked(object sender, RoutedEventArgs e)
-        {
-            _activeOption = AnnotationOptions.NONE;
-        }
-        private void rbNote_Unchecked(object sender, RoutedEventArgs e)
+        private void rb_Unchecked(object sender, RoutedEventArgs e)
         {
             _activeOption = AnnotationOptions.NONE;
         }
@@ -602,15 +680,26 @@ namespace PDFEditorNS
 
                 foreach (BaseAnnotation a in _userAnnots.AnnotationCollection)
                 {
-                    // Aqui hay que hacer un Factory ??
                     if (a is XMLHighlight)
                         this.setHighlight((XMLHighlight)a);
-
+                    else
                     if (a is StickyNote)
                         this.setStickyNote((StickyNote)a);
-
+                    else
                     if (a is MarkArea)
                         this.setMarkArea((MarkArea)a);
+                    else
+                    if (a is FreeText)
+                        this.setFreeText((FreeText)a);
+                    else
+                    if (a is Circle)
+                        this.setCircle((Circle)a);
+                    else
+                    if (a is Square)
+                        this.setSquare((Square)a);
+                    else
+                    if (a is Line)
+                        this.setLine((Line)a);
                 }
             }
         }
@@ -648,9 +737,17 @@ namespace PDFEditorNS
             _activeOption = AnnotationOptions.MARKAREA;
         }
 
-        private void rbMarkArea_Unchecked(object sender, RoutedEventArgs e)
+        private void rbCircle_Checked(object sender, RoutedEventArgs e)
         {
-            _activeOption = AnnotationOptions.NONE;
+            _activeOption = AnnotationOptions.CIRCLE;
+        }
+        private void rbSquare_Checked(object sender, RoutedEventArgs e)
+        {
+            _activeOption = AnnotationOptions.SQUARE;
+        }
+        private void rbLine_Checked(object sender, RoutedEventArgs e)
+        {
+            _activeOption = AnnotationOptions.LINE;
         }
 
         private async void fromWebApi_Click(object sender, RoutedEventArgs e)
@@ -681,6 +778,11 @@ namespace PDFEditorNS
             //    PDFDoc d = new PDFDoc(response);
             //    _viewer.SetDoc(d);
             //}
+        }
+
+        private void rbFreeText_Checked(object sender, RoutedEventArgs e)
+        {
+            _activeOption = AnnotationOptions.FREETEXT;
         }
 
         private void tbCurrentPage_TextChanged(object sender, TextChangedEventArgs e)

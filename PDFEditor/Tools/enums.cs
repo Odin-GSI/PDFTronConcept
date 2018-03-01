@@ -11,6 +11,10 @@ namespace PDFEditorNS
         HIGHLIGHT,
         COMMENT,
         MARKAREA,
+        FREETEXT,
+        CIRCLE,
+        SQUARE,
+        LINE,
         NONE
     }
 }

@@ -33,22 +33,42 @@
                         <Image Source=".\Imgs\Next.png" ></Image>
                     </Button.Content>
                 </Button>
-                <RadioButton x:Name="rbHighlight" ToolTip="Highlight" Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbHighlight_Checked" Unchecked="rbHighlight_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown" >
+                    <RadioButton x:Name="rbHighlight" ToolTip="Highlight" Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbHighlight_Checked" Unchecked="rb_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown" >
                     <RadioButton.Content>
                         <Image Source=".\Imgs\Highlight.png" ></Image>
                     </RadioButton.Content>
                 </RadioButton>
-                <RadioButton x:Name="rbNote" ToolTip="Comment"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbNote_Checked" Unchecked="rbNote_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
+                <RadioButton x:Name="rbNote" ToolTip="Sticky Note"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbNote_Checked" Unchecked="rb_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
                     <RadioButton.Content>
-                        <Image Source=".\Imgs\Comment.png" ></Image>
+                        <Image Source=".\Imgs\sticky.png" ></Image>
                     </RadioButton.Content>
                 </RadioButton>
-                <RadioButton x:Name="rbMarkArea" ToolTip="Mark Area"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbMarkArea_Checked" Unchecked="rbMarkArea_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
+                <RadioButton x:Name="rbMarkArea" ToolTip="Mark Area"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbMarkArea_Checked" Unchecked="rb_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
                     <RadioButton.Content>
                         <Image Source=".\Imgs\MarkArea.png" ></Image>
                     </RadioButton.Content>
                 </RadioButton>
-                <Button x:Name="delBtn" Click="delBtn_Click" ToolTip="Delete annotation" >
+                <RadioButton x:Name="rbCircle" ToolTip="Circle"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbCircle_Checked" Unchecked="rb_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
+                    <RadioButton.Content>
+                        <Image Source=".\Imgs\circle.png" ></Image>
+                    </RadioButton.Content>
+                </RadioButton>
+                <RadioButton x:Name="rbSquare" ToolTip="Square"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbSquare_Checked" Unchecked="rb_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
+                    <RadioButton.Content>
+                        <Image Source=".\Imgs\Square.png" ></Image>
+                    </RadioButton.Content>
+                </RadioButton>
+                <RadioButton x:Name="rbLine" ToolTip="Line"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbLine_Checked" Unchecked="rb_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
+                    <RadioButton.Content>
+                        <Image Source=".\Imgs\Line.png" ></Image>
+                    </RadioButton.Content>
+                </RadioButton>
+                <RadioButton x:Name="rbFreeText" ToolTip="Free Text"  Height="24" Style="{StaticResource ActionButtonsStyle}" VerticalAlignment="Top" GroupName="EditionOptions" Checked="rbFreeText_Checked" Unchecked="rb_Unchecked" PreviewMouseDown="radioButton_PreviewMouseDown"  >
+                <RadioButton.Content>
+                    <Image Source=".\Imgs\Comment.png" ></Image>
+                </RadioButton.Content>
+                </RadioButton>
+                    <Button x:Name="delBtn" Click="delBtn_Click" ToolTip="Delete annotation" >
                     <Button.Content>
                         <Image Source=".\Imgs\delete.png" />
                     </Button.Content>
@@ -70,7 +90,7 @@
                 </Button>
                 <Button x:Name="fromWebApi" Click="fromWebApi_Click" ToolTip="from Web Api" >
                     <Button.Content>
-                        <Image Source=".\Imgs\MarkArea.png" />
+                        <Image Source=".\Imgs\download.png" />
                     </Button.Content>
                 </Button>
                 </ToolBar>

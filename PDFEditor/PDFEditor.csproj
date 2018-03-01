@@ -60,8 +60,12 @@
     <Compile Include="Annotations\AnnotationRectCollection.cs" />
     <Compile Include="Annotations\AnnotationsContainer.cs" />
     <Compile Include="Annotations\BaseAnnotation.cs" />
+    <Compile Include="Annotations\Circle.cs" />
+    <Compile Include="Annotations\FreeText.cs" />
     <Compile Include="Annotations\Highlight.cs" />
+    <Compile Include="Annotations\Line.cs" />
     <Compile Include="Annotations\MarkArea.cs" />
+    <Compile Include="Annotations\Square.cs" />
     <Compile Include="Annotations\StickyNote.cs" />
     <Compile Include="Controls\TextPopup.xaml.cs">
       <DependentUpon>TextPopup.xaml</DependentUpon>
@@ -125,6 +129,16 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Imgs\MarkArea.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\circle.png" />
+    <Resource Include="Imgs\ink.png" />
+    <Resource Include="Imgs\Line.png" />
+    <Resource Include="Imgs\Square.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\download.png" />
+    <Resource Include="Imgs\sticky.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
