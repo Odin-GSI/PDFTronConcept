@@ -33,15 +33,15 @@ namespace PDFEditorNS
         #endregion Constructors
 
         public double XStart() { return Properties.Double(Names.XStart); }
-        public BaseAnnotation XStart(double xStart) { Properties.Double(Names.XStart, xStart); return this; }
+        public Line XStart(double xStart) { Properties.Double(Names.XStart, xStart); return this; }
 
         public double YStart() { return Properties.Double(Names.YStart); }
-        public BaseAnnotation YStart(double yStart) { Properties.Double(Names.YStart, yStart); return this; }
+        public Line YStart(double yStart) { Properties.Double(Names.YStart, yStart); return this; }
 
         public double XEnd() { return Properties.Double(Names.XEnd); }
-        public BaseAnnotation XEnd(double xEnd) { Properties.Double(Names.XEnd, xEnd); return this; }
+        public Line XEnd(double xEnd) { Properties.Double(Names.XEnd, xEnd); return this; }
 
         public double YEnd() { return Properties.Double(Names.YEnd); }
-        public BaseAnnotation YEnd(double yEnd) { Properties.Double(Names.YEnd, yEnd); return this; }
+        public Line YEnd(double yEnd) { Properties.Double(Names.YEnd, yEnd); return this; }
     }
 }

@@ -6,15 +6,22 @@ using System.Threading.Tasks;
 
 namespace PDFEditorNS
 {
-    enum AnnotationOptions
+    public enum AnnotationOptions
     {
-        HIGHLIGHT,
-        COMMENT,
-        MARKAREA,
-        FREETEXT,
-        CIRCLE,
-        SQUARE,
-        LINE,
+        HighlightAreaAnnotation,
+        HighlightTextAnnotation,
+        StickyNoteAnnotation,
+        MarkAreaAnnotation,
+        FreeTextAnnotation,
+        CircleAnnotation,
+        SquareAnnotation,
+        LineAnnotation,
+        StamperImageAnnotation,
+        StamperTextAnnotation,
+        RubberStampAnnotation,
+        SquigglyAnnotation,
+        StrikeoutAnnotation,
+        UnderlineAnnotation,
         NONE
     }
 }
