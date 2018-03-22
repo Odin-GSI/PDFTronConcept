@@ -857,6 +857,17 @@ namespace PDFEditorNS
             return new ColorPt(System.Convert.ToDouble(color.R)/255, System.Convert.ToDouble(color.G) / 255, System.Convert.ToDouble(color.B) / 255);
         }
         #endregion Color
+        #region Rotate
+        private void btRotateCntClock_Click(object sender, RoutedEventArgs e)
+        {
+            _viewer.RotateCounterClockwise();
+        }
+
+        private void btRotateClock_Click(object sender, RoutedEventArgs e)
+        {
+            _viewer.RotateClockwise();
+        }
+        #endregion Rotate
         #endregion ToolbarEvents
     }
 }

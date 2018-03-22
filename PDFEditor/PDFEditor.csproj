@@ -160,5 +160,9 @@
     <Resource Include="Imgs\ZoomIn.png" />
     <Resource Include="Imgs\ZoomOut.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Imgs\Rotate_left_arrow.png" />
+    <Resource Include="Imgs\Rotate_right_arrow.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
